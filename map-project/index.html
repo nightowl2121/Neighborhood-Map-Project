@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <title>Neighborhood Map Project</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+</head>
+
+<body>
+  <button type="button" id="listButton" data-bind='click: toggleList'>Open Location List</button>
+ 
+  <!-- Locations list -->
+  <div id="list">
+ 
+
+    <p>Locations:</p>
+    <select id="locList" multiple="multiple" height="5" data-bind="options:allItems, selectedOptions:selectedItems,"> </select>
+   <form>
+      Filter list:
+      <input type="text" data-bind='value:input, valueUpdate: "afterkeydown"' />
+      <button type='button'>Filter</button>
+    </form>
+  </div>
+
+  <div id="map"></div>
+
+  <script src="js/libs/knockout-3.4.2.js"></script>
+  
+  <script async src="js/libs/jquery-3.2.1.js"></script>
+
+  <script src="js/script.js"></script>
+
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAbMjyZ2Ac5FI7WIvo4KbZ76yeHcCdMCq0&v=3&callback=initMap">
+  </script>
+
+</body>
+
+</html>
