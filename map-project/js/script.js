@@ -8,6 +8,8 @@ var markers = [];
 
 var loadedMarker;
 
+var allItemsObservable = ko.observableArray([]);
+
 var flickr_API_KEY = "6469a4b11d59dfadb505e856ded59af3"
 
 var flickr_URL = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=" + flickr_API_KEY + "&format=json&nojsoncallback=1&photo_id="
@@ -22,7 +24,7 @@ function initMap() {
     });
 
     // Error Handling
-    if (map === null) {
+    if (map.center === null || map.zoom === null) {
         window.alert("Google Maps has failed to load. Please try again later");
     }
 
@@ -45,25 +47,35 @@ function initMap() {
 
     // Array of marker locations and info
     var markerLocations = [
-        { title: 'AT&T Park', 
-        position: { lat: 37.778595, lng: -122.38927 }, 
-        photoId: '8289047254' },
+        {
+            title: 'AT&T Park',
+            position: { lat: 37.778595, lng: -122.38927 },
+            photoId: '8289047254'
+        },
 
-        { title: 'Seward Mini Park', 
-        position: { lat: 37.757658, lng: -122.439993 }, 
-        photoId: '36004325783' },
+        {
+            title: 'Seward Mini Park',
+            position: { lat: 37.757658, lng: -122.439993 },
+            photoId: '36004325783'
+        },
 
-        { title: 'Alta Plaza Park', 
-        position: { lat: 37.791142, lng: -122.437624 }, 
-        photoId: '36994578043' },
+        {
+            title: 'Alta Plaza Park',
+            position: { lat: 37.791142, lng: -122.437624 },
+            photoId: '36994578043'
+        },
 
-        { title: 'Union Square', 
-        position: { lat: 37.787980, lng: -122.407517 }, 
-        photoId: '11610314343' },
+        {
+            title: 'Union Square',
+            position: { lat: 37.787980, lng: -122.407517 },
+            photoId: '11610314343'
+        },
 
-        { title: 'Mission Dolores Park', 
-        position: { lat: 37.759617, lng: -122.426904 }, 
-        photoId: '39151366532' }
+        {
+            title: 'Mission Dolores Park',
+            position: { lat: 37.759617, lng: -122.426904 },
+            photoId: '39151366532'
+        }
     ];
 
     // Loops through markerLocations array and sets the positions as titles
@@ -181,7 +193,10 @@ function initMap() {
         });
 
         function updateItems() {
-            this.allItems = ko.observableArray(shownTitles);
+            allItemsObservable.subscribe(function (changes) {
+                this.allItems = changes;
+                console.log('Changes: ' + changes);
+            })
         }
 
         // FILTERING LOGIC
@@ -205,11 +220,14 @@ function initMap() {
                     // Pushes all of the items from
                     // The master titles array
                     // Into the shown titles array
+                    
                     for (var x = 0; x < masterTitles.length; x++) {
                         // These items are displayed in the list
                         shownTitles.push(masterTitles[i]);
                     }
+                    allItemsObservable.push(shownTitles);
                     updateItems();
+                    shownTitles = [];
                 }
             } else {
                 //this loop iterates through each marker
@@ -219,7 +237,7 @@ function initMap() {
                 for (i = 0; i < markers.length; i++) {
                     if (markers[i].title.toLowerCase().search(searchInput) !== -1 && masterTitles[i].toLowerCase().search(searchInput) !== -1) {
                         markers[i].setVisible(true);
-                        
+
                         // Puts only titles that match
                         // The input into the shown titles array
                         shownTitles.push(masterTitles[i]);
@@ -227,6 +245,7 @@ function initMap() {
                         console.log('Filtered titles: ' + shownTitles)
 
                     }
+                    allItemsObservable.push(shownTitles);
                 }
                 // Should update the allItems array and display 
                 // the filtered items on the page
