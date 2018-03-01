@@ -10,9 +10,9 @@ var loadedMarker;
 
 var allItemsObservable = ko.observable(masterTitles);
 
-var flickr_API_KEY = "6469a4b11d59dfadb505e856ded59af3"
+var flickr_API_KEY = "6469a4b11d59dfadb505e856ded59af3";
 
-var flickr_URL = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=" + flickr_API_KEY + "&format=json&nojsoncallback=1&photo_id="
+var flickr_URL = "https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=" + flickr_API_KEY + "&format=json&nojsoncallback=1&photo_id=";
 
 function initMap() {
     // Constructor creates a new map - only center and zoom are required.
@@ -22,11 +22,6 @@ function initMap() {
         center: { lat: 37.759617, lng: -122.426904 },
         zoom: 13
     });
-
-    // Error Handling
-    if (map.center === null || map.zoom === null) {
-        window.alert("Google Maps has failed to load. Please try again later");
-    }
 
     // Makes map responsive
     // Code taken from https://stackoverflow.com/questions/15421369/responsive-google-map
@@ -96,7 +91,6 @@ function initMap() {
             animation: google.maps.Animation.DROP,
             title: title,
             photoId: photoId,
-            show: true
         });
 
         markers.push(marker);
@@ -119,23 +113,22 @@ function initMap() {
             // Add Image to infowindow
             $.getJSON(flickr_URL + marker.photoId, function (data) {
                 // Whole of the resposne from the HTTP request 
-                // console.log("Data:", data)
                 // After extracting the required info from the whole bunch of data received 
-                // console.log("Image Link:", data.sizes.size[4].source)
 
-                // Adds imae to info window
-                infowindow.setContent('<img src="' + data.sizes.size[4].source + '"'
-                    + 'alt="Sorry, this Flickr image has failed to load. Please try again later.">'
-                    + '<div>' + marker.title + '</div>'
-                    + '<div>' + "Image courtesy of Flickr.com" + '</div>');
+                // Adds image to info window
+                infowindow.setContent('<img src="' + data.sizes.size[4].source + '"' + 'alt="Flickr image">' + '<div>' + marker.title + '</div>' + '<div>' + "Image courtesy of Flickr.com" + '</div>');
             })
+
+                .fail(function () {
+                    alert("Sorry, this Flickr image has failed to load. Please try again later.");
+                });
 
             // Info window population taken from the Udacity github repository for the "Getting Started with APIs" lesson
             // Used this snippet because when I coded the info windows myself, I could only get one to open
             infowindow.open(map, marker);
             // Make sure the marker property is cleared if the infowindow is closed.
             infowindow.addListener('closeclick', function () {
-                infowindow.marker = null;
+                infowindow.close(map, marker);
             });
         }
 
@@ -154,7 +147,25 @@ function initMap() {
         }
     }
 
+    // Defined outside of ListModel because funtions cannot be defined in a loop
+    function closeWindow() {
+        infowindow.close();
+    }
 
+    var markerTitle;
+    function selectedItemsFlickr() {
+        $.getJSON(flickr_URL + markers[i].photoId, function (data) {
+                        // Whole of the resposne from the HTTP request 
+                        // After extracting the required info from the whole bunch of data received 
+
+                        // Adds image to info window
+                        infowindow.setContent('<img src="' + data.sizes.size[4].source + '"' + 'alt="Flickr image">' + '<div>' + markerTitle + '</div>' + '<div>' + "Image courtesy of Flickr.com" + '</div>');
+                    })
+
+                        .fail(function () {
+                            alert("Sorry, this Flickr image has failed to load. Please try again later.");
+                        });
+    }
 
     //   Handles the list of locations at the top of the screen
     var ListModel = function () {
@@ -168,14 +179,18 @@ function initMap() {
 
         // When an item is selected from the list and selectedItems changes, open and populate the info window
         this.selectedItems.subscribe(function (context) {
+            function closeWindow() {
+                infowindow.close();
+            }
             for (i = 0; i < markers.length; i++) {
                 if (context == markers[i].title) {
+                    markerTitle = markers[i].title;
                     infowindow.marker = markers[i];
-                    infowindow.setContent('<div>' + context + '</div>');
+                    selectedItemsFlickr();
+                    // infowindow.setContent('<div>' + context + '</div>');
                     infowindow.open(map, markers[i]);
                     // Make sure the marker property is cleared if the infowindow is closed.
-                    infowindow.addListener('closeclick', infowindow.marker = null);
-
+                    infowindow.addListener('closeclick', closeWindow);
                     // Handles marker bouncing
                     if (markers[i].getAnimation() !== null) {
                         markers[i].setAnimation(null);
@@ -192,13 +207,12 @@ function initMap() {
             }
         });
 
-        // function updateItems() {
-            allItemsObservable.subscribe(function (changes) {
-                this.allItems = changes;
-                console.log('Changes: ' + changes);
-                changes = [];
-            })
-        // }
+        // Updates items in the list when the input changes
+        allItemsObservable.subscribe(function (changes) {
+            this.allItems = changes;
+            changes = [];
+        });
+
 
         // FILTERING LOGIC
         this.input = ko.observable('');
@@ -221,7 +235,7 @@ function initMap() {
                     // Pushes all of the items from
                     // The master titles array
                     // Into the shown titles array
-                    
+
                     for (var j = 0; j < masterTitles.length; j++) {
                         // These items are displayed in the list
                         shownTitles.push(masterTitles[j]);
@@ -242,15 +256,10 @@ function initMap() {
                         // The input into the shown titles array
                         shownTitles.push(masterTitles[i]);
                         // Shows which titles have been filteres
-                        console.log('Filtered titles: ' + shownTitles)
-
                     }
                     allItemsObservable(shownTitles);
                 }
-                // Should update the allItems array and display 
-                // the filtered items on the page
-                // updateItems();
-                shownTitles = []
+                shownTitles = [];
             }
 
         });
@@ -279,4 +288,8 @@ function initMap() {
 
     ko.applyBindings(new ListModel());
 
+}
+
+function mapsError() {
+    window.alert("Google Maps has failed to load. Please try again later");
 }
