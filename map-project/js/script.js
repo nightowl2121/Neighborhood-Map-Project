@@ -8,7 +8,7 @@ var markers = [];
 
 var loadedMarker;
 
-var allItemsObservable = ko.observableArray([]);
+var allItemsObservable = ko.observable(masterTitles);
 
 var flickr_API_KEY = "6469a4b11d59dfadb505e856ded59af3"
 
@@ -192,12 +192,13 @@ function initMap() {
             }
         });
 
-        function updateItems() {
+        // function updateItems() {
             allItemsObservable.subscribe(function (changes) {
                 this.allItems = changes;
                 console.log('Changes: ' + changes);
+                changes = [];
             })
-        }
+        // }
 
         // FILTERING LOGIC
         this.input = ko.observable('');
@@ -221,12 +222,11 @@ function initMap() {
                     // The master titles array
                     // Into the shown titles array
                     
-                    for (var x = 0; x < masterTitles.length; x++) {
+                    for (var j = 0; j < masterTitles.length; j++) {
                         // These items are displayed in the list
-                        shownTitles.push(masterTitles[i]);
+                        shownTitles.push(masterTitles[j]);
                     }
-                    allItemsObservable.push(shownTitles);
-                    updateItems();
+                    allItemsObservable(shownTitles);
                     shownTitles = [];
                 }
             } else {
@@ -245,11 +245,11 @@ function initMap() {
                         console.log('Filtered titles: ' + shownTitles)
 
                     }
-                    allItemsObservable.push(shownTitles);
+                    allItemsObservable(shownTitles);
                 }
                 // Should update the allItems array and display 
                 // the filtered items on the page
-                updateItems();
+                // updateItems();
                 shownTitles = []
             }
 
